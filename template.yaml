@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=./template.yaml
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: Github PR Summary - Serverless
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+
+Parameters:
+  Project:
+    Type: String
+    Description: The name of the project
+  Environment:
+    Type: String
+    Description: The environment of the project
+    AllowedValues:
+      - Dev
+      - Stg
+      - Prod
+  RepositoryOwner:
+    Type: String
+    Description: Owner of the repository
+  Repository:
+    Type: String
+    Description: Name of the repository
+
+Resources:
+  GithubPRSummaryFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      CodeUri: .
+      Handler: ghprsum
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          GITHUB_REPOSITORY_OWNER:
+            Ref: RepositoryOwner
+          GITHUB_REPOSITORY:
+            Ref: Repository
+          SNS_ARN:
+            Ref: GithubPRSummarySNS
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: "rate(7 days)"
+            Name: !Sub GithubPRSummaryFunction-${Environment}
+            Description: GithubPRSummaryFunctionEvent
+            Enabled: true
+      FunctionName: !Join
+        - "-"
+        - - !Ref Project
+          - !Ref Environment
+          - Lambda
+  GithubPRSummarySNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Join
+        - "-"
+        - - !Ref Project
+          - !Ref Environment
+          - SNS
+      TopicName: !Join
+        - "-"
+        - - !Ref Project
+          - !Ref Environment
+          - SNS
+  FunctionSNSConnector:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: GithubPRSummaryFunction
+      Destination:
+        Id: GithubPRSummarySNS
+      Permissions:
+        - Write
+
+Outputs:
+  GithubPRSummaryFunction:
+    Description: GithubPRSummaryFunction Lambda Function ARN
+    Value: !GetAtt GithubPRSummaryFunction.Arn
