@@ -43,5 +43,5 @@ profile = "playground"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 disable_rollback = false
-parameter_overrides = "Project=\"GHPRSum\" Environment=\"Prod\" RepositoryOwner=\"facebook\" Repository=\"react\""
+parameter_overrides = "Project=\"GHPRSum\" Environment=\"Prod\" RepositoryOwner=\"argoproj\" Repository=\"argo-cd\""
 image_repositories = []
