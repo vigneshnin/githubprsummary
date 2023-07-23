@@ -1,4 +1,4 @@
-#githubprsummary
+# githubprsummary
 An AWS Serverless solution that sends Github PR summary as email.
 This creates a Lambda function triggered every 7 days using EventBridge rule. It uses SNS to send email notifications.
 
